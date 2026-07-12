@@ -1,0 +1,24 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Python cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local configuration/secrets
+.env
+
+# Editors
+.vscode/
+.idea/
+
+# Database files
+*.db
+*.sqlite
