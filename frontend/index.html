@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keypass // Password Cracking Demonstrator</title>
+    <!-- IBM Plex Sans & IBM Plex Mono Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <span class="logo-accent">KEYPASS</span>
+                <span class="logo-version">v1.0.0</span>
+            </div>
+            <div class="header-status">
+                <span class="status-indicator online"></span>
+                <span class="status-text">SYSTEM ONLINE (LOCAL)</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Input & Control -->
+            <section class="panel control-panel">
+                <div class="panel-header">
+                    <h2>01. TARGET CONFIGURATION</h2>
+                </div>
+                <div class="panel-body">
+                    <!-- Target Generator / Input -->
+                    <div class="form-group">
+                        <label for="password-input">Plaintext Input</label>
+                        <div class="input-with-button">
+                            <input type="text" id="password-input" placeholder="Type a password or generate..." value="password123">
+                            <button type="button" id="btn-generate-weak" class="btn btn-secondary btn-xs">Weak</button>
+                            <button type="button" id="btn-generate-med" class="btn btn-secondary btn-xs">Medium</button>
+                            <button type="button" id="btn-generate-strong" class="btn btn-secondary btn-xs">Strong</button>
+                        </div>
+                    </div>
+
+                    <!-- Hash Algorithm Select -->
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="algo-select">Hash Function</label>
+                            <select id="algo-select">
+                                <option value="sha256" selected>SHA-256</option>
+                                <option value="sha1">SHA-1</option>
+                                <option value="md5">MD5 (Insecure)</option>
+                                <option value="bcrypt">bcrypt (Slow/salted)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Generated Hash View -->
+                    <div class="form-group">
+                        <label for="hash-output">Computed Hash</label>
+                        <div class="hash-display-container">
+                            <input type="text" id="hash-output" readonly placeholder="Calculated hash will appear here...">
+                            <button type="button" id="btn-copy-hash" class="btn-icon" title="Copy Hash">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Attack Selector -->
+                    <div class="form-group">
+                        <label>Attack Vectors</label>
+                        <div class="attack-buttons-grid">
+                            <button type="button" id="btn-attack-dict" class="btn btn-primary">Dictionary Attack</button>
+                            <button type="button" id="btn-attack-bf" class="btn btn-primary">Brute Force</button>
+                            <button type="button" id="btn-attack-rt" class="btn btn-primary">Rainbow Lookup</button>
+                            <button type="button" id="btn-attack-bench" class="btn btn-accent">Run Benchmark</button>
+                        </div>
+                    </div>
+
+                    <hr class="panel-divider">
+
+                    <!-- Sub-parameters: Brute force settings -->
+                    <div class="sub-settings" id="bf-settings">
+                        <h3>Brute Force Parameters</h3>
+                        <div class="form-group">
+                            <label>Charset Pools</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cb-lower" checked>
+                                    <span>Lowercase (a-z)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cb-upper">
+                                    <span>Uppercase (A-Z)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cb-digits" checked>
+                                    <span>Digits (0-9)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cb-symbols">
+                                    <span>Symbols (!@#...)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bf-len-range">Max Length: <span id="bf-len-val">4</span></label>
+                            <input type="range" id="bf-len-range" min="1" max="6" value="4">
+                            <span class="warning-text" id="bf-warning" style="display:none;">Lengths > 4 with multiple charsets can take a very long time in Python!</span>
+                        </div>
+                    </div>
+
+                    <!-- Sub-parameters: Rainbow Table Setup -->
+                    <div class="sub-settings" id="rt-settings">
+                        <h3>Rainbow Table Precomputation</h3>
+                        <p class="panel-info-text">Rainbow tables precalculate common password hashes and store them in an SQLite database for instant O(1) lookups.</p>
+                        <div class="precompute-container">
+                            <button type="button" id="btn-precompute" class="btn btn-secondary btn-block">Build Rainbow Table (10k words)</button>
+                            <div class="progress-bar-container" id="precompute-progress-container" style="display: none;">
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="precompute-progress-fill" style="width: 0%;"></div>
+                                </div>
+                                <span class="progress-bar-text" id="precompute-progress-text">Precomputing: 0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Live Crack Log & Stats -->
+            <section class="panel execution-panel">
+                <div class="panel-header">
+                    <h2>02. LIVE CRACKING PROCESSOR</h2>
+                    <span id="active-attack-badge" class="badge badge-inactive">IDLE</span>
+                </div>
+                <div class="panel-body split-body">
+                    <!-- Console/Scrolling Log -->
+                    <div class="console-wrapper">
+                        <div class="console-header">
+                            <span>ATTEMPT LOG // STDOUT</span>
+                            <button type="button" id="btn-clear-console" class="btn-link">Clear</button>
+                        </div>
+                        <div class="console-box" id="console-output">
+                            <div class="console-line system-line">[SYSTEM] Ready. Select a hash algorithm and choose an attack vector.</div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics readouts -->
+                    <div class="stats-panel">
+                        <div class="stat-box">
+                            <div class="stat-label">ELAPSED TIME</div>
+                            <div class="stat-value" id="stat-elapsed">0.00s</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">ATTEMPT RATE</div>
+                            <div class="stat-value" id="stat-speed">0 h/s</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">TOTAL ATTEMPTS</div>
+                            <div class="stat-value" id="stat-attempts">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">CURRENT CANDIDATE</div>
+                            <div class="stat-value monospace" id="stat-candidate">N/A</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Panel: Results Comparison & Entropy Insights -->
+            <section class="panel results-panel full-width-panel">
+                <div class="panel-header">
+                    <h2>03. SECURITY INSIGHTS & BENCHMARK</h2>
+                </div>
+                <div class="panel-body insights-grid">
+                    
+                    <!-- Entropy Card -->
+                    <div class="insight-card entropy-card">
+                        <h3>Password Entropy Analysis</h3>
+                        <div class="entropy-row">
+                            <div class="entropy-stat">
+                                <span class="label">Entropy Bits</span>
+                                <span class="val" id="entropy-bits">-</span>
+                            </div>
+                            <div class="entropy-stat">
+                                <span class="label">Strength Level</span>
+                                <span class="val badge-strength" id="entropy-strength">-</span>
+                            </div>
+                        </div>
+                        <div class="entropy-details">
+                            <div><strong>Character Pool (R):</strong> <span id="entropy-pool-size">-</span> (<span id="entropy-pool-desc">N/A</span>)</div>
+                            <div><strong>Total Combinations:</strong> <span id="entropy-combinations">-</span></div>
+                            <div><strong>Est. Offline Crack Time (V100 GPU):</strong> <span id="entropy-crack-time" class="crack-time-highlight">-</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Benchmark Comparison Table -->
+                    <div class="insight-card benchmark-card">
+                        <h3>Side-by-Side Crack Comparison</h3>
+                        <table class="benchmark-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Cracked?</th>
+                                    <th>Time Elapsed</th>
+                                    <th>Total Iterations</th>
+                                    <th>Speed (Hash/sec)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="row-rainbow">
+                                    <td class="col-method">Rainbow Table</td>
+                                    <td class="col-cracked">-</td>
+                                    <td class="col-time">-</td>
+                                    <td class="col-attempts">-</td>
+                                    <td class="col-speed">Instant O(1)</td>
+                                </tr>
+                                <tr id="row-dictionary">
+                                    <td class="col-method">Dictionary Attack</td>
+                                    <td class="col-cracked">-</td>
+                                    <td class="col-time">-</td>
+                                    <td class="col-attempts">-</td>
+                                    <td class="col-speed">-</td>
+                                </tr>
+                                <tr id="row-bruteforce">
+                                    <td class="col-method">Brute Force</td>
+                                    <td class="col-cracked">-</td>
+                                    <td class="col-time">-</td>
+                                    <td class="col-attempts">-</td>
+                                    <td class="col-speed">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <span class="footer-disclaimer">DISCLAIMER: Educational tool — test your own passwords only. Do not use for malicious activities.</span>
+            <span class="footer-copyright">Keypass demonstrator v1.0.0</span>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
