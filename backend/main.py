@@ -15,6 +15,7 @@ app = FastAPI(title="Keypass API", description="Educational Password Cracking De
 class HashRequest(BaseModel):
     password: str
     algorithm: str
+    bcrypt_rounds: Optional[int] = 12
 
 class BenchmarkRequest(BaseModel):
     password: str
@@ -24,8 +25,8 @@ class BenchmarkRequest(BaseModel):
 @app.post("/api/hash")
 def api_hash(payload: HashRequest):
     try:
-        hashed = hash_password(payload.password, payload.algorithm)
-        return {"hash": hashed, "password": payload.password, "algorithm": payload.algorithm}
+        hashed = hash_password(payload.password, payload.algorithm, bcrypt_rounds=payload.bcrypt_rounds)
+        return {"hash": hashed, "password": payload.password, "algorithm": payload.algorithm, "bcrypt_rounds": payload.bcrypt_rounds}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

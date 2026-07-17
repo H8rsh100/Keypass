@@ -55,6 +55,10 @@
                                 <option value="bcrypt">bcrypt (Slow/salted)</option>
                             </select>
                         </div>
+                        <div class="form-group col-6" id="bcrypt-cost-container" style="display: none;">
+                            <label for="bcrypt-cost-range">Cost factor (2^N): <span id="bcrypt-cost-val">10</span></label>
+                            <input type="range" id="bcrypt-cost-range" min="4" max="12" value="10">
+                        </div>
                     </div>
 
                     <!-- Generated Hash View -->

@@ -36,6 +36,14 @@ def test_bcrypt_hashing():
     assert verify_password(password, hashed, "bcrypt") is True
     assert verify_password("wrongpassword", hashed, "bcrypt") is False
 
+def test_bcrypt_custom_rounds():
+    password = "password123"
+    # test with minimum cost factor for speed in tests
+    hashed = hash_password(password, "bcrypt", bcrypt_rounds=4)
+    # The cost factor is encoded in the 3rd sub-field of the bcrypt hash, e.g. $2b$04$
+    assert hashed.startswith("$2b$04$") or hashed.startswith("$2a$04$")
+    assert verify_password(password, hashed, "bcrypt") is True
+
 def test_unsupported_algorithm():
     with pytest.raises(ValueError):
         hash_password("hello", "sha512")

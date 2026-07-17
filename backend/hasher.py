@@ -1,7 +1,7 @@
 import hashlib
 import bcrypt
 
-def hash_password(password: str, algorithm: str) -> str:
+def hash_password(password: str, algorithm: str, bcrypt_rounds: int = 12) -> str:
     """
     Hashes a password string using the specified algorithm.
     Supported algorithms: md5, sha1, sha256, bcrypt
@@ -16,8 +16,8 @@ def hash_password(password: str, algorithm: str) -> str:
     elif algo == 'sha256':
         return hashlib.sha256(password_bytes).hexdigest()
     elif algo == 'bcrypt':
-        # Generate a salt and hash the password
-        salt = bcrypt.gensalt()
+        # Generate a salt with custom cost factor and hash the password
+        salt = bcrypt.gensalt(rounds=bcrypt_rounds)
         hashed = bcrypt.hashpw(password_bytes, salt)
         return hashed.decode('utf-8')
     else:

@@ -3,6 +3,9 @@ const passwordInput = document.getElementById("password-input");
 const algoSelect = document.getElementById("algo-select");
 const hashOutput = document.getElementById("hash-output");
 const copyHashBtn = document.getElementById("btn-copy-hash");
+const bcryptCostContainer = document.getElementById("bcrypt-cost-container");
+const bcryptCostRange = document.getElementById("bcrypt-cost-range");
+const bcryptCostVal = document.getElementById("bcrypt-cost-val");
 
 // Preset Buttons
 const btnWeak = document.getElementById("btn-generate-weak");
@@ -127,16 +130,27 @@ async function updateHash() {
     const password = passwordInput.value;
     const algorithm = algoSelect.value;
     
+    if (algorithm === "bcrypt") {
+        bcryptCostContainer.style.display = "flex";
+    } else {
+        bcryptCostContainer.style.display = "none";
+    }
+    
     if (!password) {
         hashOutput.value = "";
         return;
+    }
+    
+    const requestBody = { password, algorithm };
+    if (algorithm === "bcrypt") {
+        requestBody.bcrypt_rounds = parseInt(bcryptCostRange.value);
     }
     
     try {
         const response = await fetch("/api/hash", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password, algorithm })
+            body: JSON.stringify(requestBody)
         });
         
         if (response.ok) {
@@ -490,6 +504,15 @@ hardwareSelect.addEventListener("change", () => {
         entropyCrackTime.textContent = formatEstimatedTime(estimatedSeconds);
         logToConsole(`Recalculated offline crack time: ${formatEstimatedTime(estimatedSeconds)} at ${formatNumber(hardwareRate)} H/s.`, "system");
     }
+});
+
+// Bcrypt Cost slider updates
+bcryptCostRange.addEventListener("input", () => {
+    bcryptCostVal.textContent = bcryptCostRange.value;
+});
+bcryptCostRange.addEventListener("change", () => {
+    logToConsole(`Bcrypt cost factor set to ${bcryptCostRange.value} (performs 2^${bcryptCostRange.value} hashing rounds)`, "system");
+    updateHash();
 });
 
 // Attack Button Handlers
