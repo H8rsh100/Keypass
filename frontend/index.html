@@ -192,7 +192,17 @@
                         <div class="entropy-details">
                             <div><strong>Character Pool (R):</strong> <span id="entropy-pool-size">-</span> (<span id="entropy-pool-desc">N/A</span>)</div>
                             <div><strong>Total Combinations:</strong> <span id="entropy-combinations">-</span></div>
-                            <div><strong>Est. Offline Crack Time (V100 GPU):</strong> <span id="entropy-crack-time" class="crack-time-highlight">-</span></div>
+                            <div class="hardware-sim-container">
+                                <label for="hardware-select" style="font-size: 0.7rem; color: var(--text-muted);">Simulated Hardware Speed:</label>
+                                <select id="hardware-select" style="padding: 0.3rem 0.5rem; font-size: 0.75rem; background-color: #070b13; margin-top: 0.2rem; margin-bottom: 0.5rem;">
+                                    <option value="10000">IoT Device / Smart TV (10 KH/s)</option>
+                                    <option value="1000000">Standard CPU Laptop (1 MH/s)</option>
+                                    <option value="100000000" selected>NVIDIA V100 GPU (100 MH/s)</option>
+                                    <option value="10000000000">Dedicated GPU Rig - 8x RTX 4090 (10 GH/s)</option>
+                                    <option value="1000000000000">State-Sponsored Supercomputer Cluster (1 TH/s)</option>
+                                </select>
+                            </div>
+                            <div><strong>Est. Offline Crack Time:</strong> <span id="entropy-crack-time" class="crack-time-highlight">-</span></div>
                         </div>
                     </div>
 

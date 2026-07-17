@@ -48,15 +48,17 @@ const entropyPoolSize = document.getElementById("entropy-pool-size");
 const entropyPoolDesc = document.getElementById("entropy-pool-desc");
 const entropyCombinations = document.getElementById("entropy-combinations");
 const entropyCrackTime = document.getElementById("entropy-crack-time");
+const hardwareSelect = document.getElementById("hardware-select");
 
 // Benchmark Rows
 const rowRainbow = document.getElementById("row-rainbow");
 const rowDictionary = document.getElementById("row-dictionary");
 const rowBruteforce = document.getElementById("row-bruteforce");
 
-// Global WebSocket Variable
+// Global variables
 let socket = null;
 let activeAttackType = null;
+let currentCombinations = 0;
 
 // Presets lists
 const WEAK_PRESETS = ["password", "123456", "dragon", "letmein", "monkey", "admin"];
@@ -446,8 +448,14 @@ function updateInsightsUI(data) {
     
     entropyPoolSize.textContent = ent.pool_size;
     entropyPoolDesc.textContent = ent.pool_description;
-    entropyCombinations.textContent = formatNumber(ent.combinations);
-    entropyCrackTime.textContent = formatEstimatedTime(ent.estimated_crack_time_seconds);
+    
+    currentCombinations = ent.combinations;
+    entropyCombinations.textContent = formatNumber(currentCombinations);
+    
+    // Calculate based on selected hardware speed
+    const hardwareRate = parseInt(hardwareSelect.value);
+    const estimatedSeconds = currentCombinations / hardwareRate;
+    entropyCrackTime.textContent = formatEstimatedTime(estimatedSeconds);
 
     // 2. Update Table Rows
     // Rainbow Table Row
@@ -473,6 +481,16 @@ function updateInsightsUI(data) {
     rowBruteforce.querySelector(".col-attempts").textContent = bf.attempts;
     rowBruteforce.querySelector(".col-speed").textContent = bf.time_taken > 0 ? `${formatNumber(Math.round(bf.attempts / bf.time_taken))} h/s` : "N/A";
 }
+
+// Recalculate crack time on hardware change
+hardwareSelect.addEventListener("change", () => {
+    if (currentCombinations > 0) {
+        const hardwareRate = parseInt(hardwareSelect.value);
+        const estimatedSeconds = currentCombinations / hardwareRate;
+        entropyCrackTime.textContent = formatEstimatedTime(estimatedSeconds);
+        logToConsole(`Recalculated offline crack time: ${formatEstimatedTime(estimatedSeconds)} at ${formatNumber(hardwareRate)} H/s.`, "system");
+    }
+});
 
 // Attack Button Handlers
 btnDict.addEventListener("click", () => startStreamingAttack("dictionary"));
