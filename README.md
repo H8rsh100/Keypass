@@ -1,92 +1,105 @@
-# Keypass: Password Cracking Demonstrator
+# 🔐 Keypass: Password Cracking Demonstrator
 
-Keypass is an interactive, local educational tool designed to visually demonstrate the strength and vulnerabilities of different password hashing configurations. By pitting three cracking methods (brute-force, dictionary attack, and precomputed rainbow tables) against user-defined or randomly generated passwords, it provides a quantitative lesson on password entropy and modern cryptographic hygiene.
+> **Self-Hosted Educational Security Tool** - Visually demonstrates the quantitative differences between Brute Force, Dictionary Attacks, and Rainbow Table lookups.
 
-## Key Features
-
-1. **Multi-Algorithm Hasher:** Generates and displays raw hashes using MD5, SHA-1, SHA-256, and bcrypt to show the difference between weak legacy hashes and modern slow salted hashes.
-2. **Sequential Dictionary Attack:** Streams candidate passwords from a trimmed local list (~10,000 common credentials), showing real-time iteration speed and matched items.
-3. **Combinatorial Brute Force:** Generates character permutations dynamically using custom pools (lowercase, uppercase, digits, symbols) and streams live metrics via WebSockets with configurable length caps and execution limits.
-4. **Precomputed Rainbow Tables:** Precomputes hashes for the entire wordlist and caches them in an SQLite database, showing why precomputed index tables can break weak hashes in absolute O(1) time.
-5. **Insights & Benchmarks:** Displays password entropy calculation alongside side-by-side crack comparisons, highlighting why length and complexity are key defenses.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## Architecture & Project Structure
+## 🎯 What is Keypass?
 
-The project is structured cleanly to separate backend logic, the wordlist assets, and a lightweight web dashboard:
+Keypass is a local web application built with a Python FastAPI backend and a clean, responsive frontend. It serves as an educational instrument panel designed to show exactly why weak passwords fail. 
+
+When a user inputs a password, the system hashes it and initiates a live race between three cracking methods: **Brute Force**, **Dictionary Attack**, and **Rainbow Table Lookup**. Through real-time WebSocket streaming, users can watch the raw candidate attempts and see the orders of magnitude difference in cracking times.
+
+*Disclaimer: Educational tool only - test your own passwords only. Does not connect to live credential dumps.*
+
+---
+
+## ✨ Core Features
+
+- **Multi-Algorithm Hasher**: Hashes inputs using `md5`, `sha1`, and `sha256`. Showcases the inherent vulnerabilities in older algorithms like md5.
+- **Dictionary Attack Engine**: Streams through a localized wordlist (`common_passwords.txt`), hashes candidates, and reports match times instantly.
+- **WebSocket Brute Force**: Uses `itertools.product` to exhaustively search characters. Streams live progress (attempts/sec, current candidate, elapsed time) directly to the frontend.
+- **Rainbow Table Precomputation**: Demonstrates the terrifying speed of precomputation by caching hash-to-plaintext mappings for instant lookups.
+- **Interactive Benchmark View**: Races all three methods side-by-side against passwords of increasing strength (e.g., `password1`, `Tr0ub4dor&3`, and random 16-char strings).
+
+---
+
+## 🛠️ Tech Stack & Design
+
+- **Backend**: Python, FastAPI, WebSockets, `hashlib`, `itertools`
+- **Frontend**: Vanilla HTML/CSS/JS (Lean and fast, no heavy UI framework bloat)
+- **Design Language**: Cyber-instrumentation styling. Features deep slate backgrounds (`#0d1117`), real monospace typography (JetBrains Mono) for hash outputs and live attempt logs, and distinct state colors (Amber/Cyan) instead of generic hacker-green.
+
+---
+
+## 🚀 Quick Start (Local Run)
+
+### Prerequisites
+- Python 3.10+
+- pip
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/H8rsh100/Keypass.git
+cd Keypass
+
+# Create and activate virtual environment
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Run the Server
+
+```bash
+# Start the FastAPI server
+python backend/main.py
+```
+Open `http://localhost:8000` in your browser.
+
+---
+
+## 📁 Project Structure
 
 ```
 Keypass/
 ├── backend/
-│   ├── main.py              # FastAPI application & WebSocket handlers
-│   ├── hasher.py            # Password hashing & verification wrapper
-│   ├── dictionary_attack.py # Dictionary matching generator
-│   ├── brute_force.py       # Itertools-based brute-force generator
-│   ├── rainbow_table.py     # SQLite precomputation & O(1) lookup
-│   └── benchmark.py         # Side-by-side performance comparator & entropy formula
+│   ├── main.py              # FastAPI app, routes, websocket handlers
+│   ├── hasher.py            # Hashing utility functions
+│   ├── dictionary_attack.py # Dictionary streaming logic
+│   ├── brute_force.py       # Itertools permutation engine
+│   ├── rainbow_table.py     # Precomputation and SQLite/JSON caching
+│   └── benchmark.py         # Side-by-side race coordinator
 ├── wordlists/
-│   ├── common_passwords.txt # Trimmed 10,000 common passwords list
-│   └── rainbow_table.db     # SQLite cache (generated dynamically)
+│   └── common_passwords.txt # Trimmed sample list (~10k-50k entries)
 ├── frontend/
-│   ├── index.html           # Dark-themed CTF-style UI template
-│   ├── styles.css           # Vanilla CSS layout and animations
-│   └── app.js               # Frontend controller, WebSocket streams, and chart logic
-├── tests/                   # Pytest suite verifying backend functionality
-├── requirements.txt         # Python dependencies
-└── tasks.md                 # Project roadmap and checklist
+│   ├── index.html           # Main instrument panel
+│   ├── styles.css           # Slate/Amber UI theme
+│   └── app.js               # WebSocket listeners & DOM updates
+└── README.md
 ```
 
 ---
 
-## Guardrails & Disclaimers
+## ⚙️ GitHub Repository Configuration
 
-To align with ethical guidelines and prevent potential abuse:
-- **No Remote Credential Lookups:** The application operates completely locally and does not fetch or query any external third-party credential databases or leaks.
-- **No Arbitrary Uploads:** The system only cracks hashes generated during the active session or entered into the demonstrator dashboard.
-- **Strict Execution Limits:** Brute force and dictionary attempts are rate-limited on the backend and capped to prevent server crashes or lockups.
-- **Educational Intent Only:** Built solely for cybersecurity educators, students, and professionals to demonstrate credential safety.
+To optimize your repository index card on GitHub, copy these tags into the **Topics** field in your repository settings:
+
+`cybersecurity` `password-cracking` `fastapi` `websockets` `python` `educational-tool` `infosec` `cryptography`
 
 ---
 
-## Local Setup & Execution
+## License
 
-### 1. Prerequisites
-- Python 3.10+
-- Git
-
-### 2. Installation
-Clone the repository and navigate to the project directory:
-```bash
-git clone https://github.com/H8rsh100/Keypass.git
-cd Keypass
-```
-
-Create and activate a virtual environment:
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Run the Application
-Start the FastAPI server using Uvicorn:
-```bash
-uvicorn backend.main:app --reload --port 8000
-```
-Open your browser and navigate to: `http://localhost:8000`
-
-### 4. Running the Tests
-To run the full suite of cryptography and cracking logic tests, run:
-```bash
-pytest
-```
+MIT - see LICENSE.
